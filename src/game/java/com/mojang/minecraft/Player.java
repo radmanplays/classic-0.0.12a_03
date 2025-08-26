@@ -37,7 +37,7 @@ public final class Player extends Entity {
 			++var1;
 		}
 
-		if(Keyboard.isKeyDown(Keyboard.KEY_SPACE) || Keyboard.isKeyDown(Keyboard.KEY_LMETA)) {
+		if(Keyboard.isKeyDown(Keyboard.KEY_SPACE)) {
 			if(var3) {
 				this.yd += 0.06F;
 			} else if(var4) {

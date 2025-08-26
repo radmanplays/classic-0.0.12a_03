@@ -14,6 +14,8 @@ import com.mojang.minecraft.renderer.Tesselator;
 import com.mojang.minecraft.renderer.Textures;
 import com.mojang.util.GLAllocation;
 import net.lax1dude.eaglercraft.EagRuntime;
+import net.lax1dude.eaglercraft.EagUtils;
+
 import com.mojang.minecraft.level.DirtyChunkSorter;
 
 import java.io.IOException;
@@ -81,6 +83,7 @@ public final class Minecraft implements Runnable {
 		try {
 			this.level.save();
 		} catch (Exception var2) {
+			var2.printStackTrace();
 		}
 		EagRuntime.destroy();
 	}
@@ -136,6 +139,8 @@ public final class Minecraft implements Runnable {
 			while(true) {
 				if(var2 >= 10) {
 					var4.grabMouse();
+					reportGLError("Post startup");
+					break;
 				}
 
 				Zombie var3 = new Zombie(var4.level, var4.textureManager, 128.0F, 0.0F, 128.0F);
@@ -144,6 +149,7 @@ public final class Minecraft implements Runnable {
 				++var2;
 			}
 		} catch (Exception var9) {
+			var9.printStackTrace();
 			System.out.println("Failed to start Minecraft");
 			destroy();
 		}
@@ -713,5 +719,11 @@ public final class Minecraft implements Runnable {
 		this.font.drawShadow(var1, (var3 - this.font.getWidth(var1)) / 2, var4 / 2 - 4 - 8, 16777215);
 		this.font.drawShadow(var2, (var3 - this.font.getWidth(var2)) / 2, var4 / 2 - 4 + 4, 16777215);
 		Display.update();
+
+		try {
+			EagUtils.sleep(200L);
+		} catch (Exception var7) {
+			var7.printStackTrace();
+		}
 	}
 }
