@@ -2,92 +2,91 @@ package com.mojang.minecraft.character;
 
 import org.lwjgl.opengl.GL11;
 
-public class Cube {
+public final class Cube {
 	private Vertex[] vertices;
 	private Polygon[] polygons;
-	private int xTexOffs;
-	private int yTexOffs;
-	public float x;
-	public float y;
-	public float z;
+	private int textureOffsetX;
+	private int textureOffsetY;
+	private float x;
+	private float y;
+	private float z;
 	public float xRot;
 	public float yRot;
 	public float zRot;
 	private boolean compiled = false;
 	private int list = 0;
 
-	public Cube(int xTexOffs, int yTexOffs) {
-		this.xTexOffs = xTexOffs;
-		this.yTexOffs = yTexOffs;
+	public Cube(int var1, int var2) {
+		this.textureOffsetX = var1;
+		this.textureOffsetY = var2;
 	}
 
-	public void setTexOffs(int xTexOffs, int yTexOffs) {
-		this.xTexOffs = xTexOffs;
-		this.yTexOffs = yTexOffs;
-	}
-
-	public void addBox(float x0, float y0, float z0, int w, int h, int d) {
+	public final void addBox(float var1, float var2, float var3, int var4, int var5, int var6) {
 		this.vertices = new Vertex[8];
 		this.polygons = new Polygon[6];
-		float x1 = x0 + (float)w;
-		float y1 = y0 + (float)h;
-		float z1 = z0 + (float)d;
-		Vertex u0 = new Vertex(x0, y0, z0, 0.0F, 0.0F);
-		Vertex u1 = new Vertex(x1, y0, z0, 0.0F, 8.0F);
-		Vertex u2 = new Vertex(x1, y1, z0, 8.0F, 8.0F);
-		Vertex u3 = new Vertex(x0, y1, z0, 8.0F, 0.0F);
-		Vertex l0 = new Vertex(x0, y0, z1, 0.0F, 0.0F);
-		Vertex l1 = new Vertex(x1, y0, z1, 0.0F, 8.0F);
-		Vertex l2 = new Vertex(x1, y1, z1, 8.0F, 8.0F);
-		Vertex l3 = new Vertex(x0, y1, z1, 8.0F, 0.0F);
-		this.vertices[0] = u0;
-		this.vertices[1] = u1;
-		this.vertices[2] = u2;
-		this.vertices[3] = u3;
-		this.vertices[4] = l0;
-		this.vertices[5] = l1;
-		this.vertices[6] = l2;
-		this.vertices[7] = l3;
-		this.polygons[0] = new Polygon(new Vertex[]{l1, u1, u2, l2}, this.xTexOffs + d + w, this.yTexOffs + d, this.xTexOffs + d + w + d, this.yTexOffs + d + h);
-		this.polygons[1] = new Polygon(new Vertex[]{u0, l0, l3, u3}, this.xTexOffs + 0, this.yTexOffs + d, this.xTexOffs + d, this.yTexOffs + d + h);
-		this.polygons[2] = new Polygon(new Vertex[]{l1, l0, u0, u1}, this.xTexOffs + d, this.yTexOffs + 0, this.xTexOffs + d + w, this.yTexOffs + d);
-		this.polygons[3] = new Polygon(new Vertex[]{u2, u3, l3, l2}, this.xTexOffs + d + w, this.yTexOffs + 0, this.xTexOffs + d + w + w, this.yTexOffs + d);
-		this.polygons[4] = new Polygon(new Vertex[]{u1, u0, u3, u2}, this.xTexOffs + d, this.yTexOffs + d, this.xTexOffs + d + w, this.yTexOffs + d + h);
-		this.polygons[5] = new Polygon(new Vertex[]{l0, l1, l2, l3}, this.xTexOffs + d + w + d, this.yTexOffs + d, this.xTexOffs + d + w + d + w, this.yTexOffs + d + h);
+		float var7 = var1 + (float)var4;
+		float var8 = var2 + (float)var5;
+		float var9 = var3 + (float)var6;
+		Vertex var10 = new Vertex(var1, var2, var3, 0.0F, 0.0F);
+		Vertex var11 = new Vertex(var7, var2, var3, 0.0F, 8.0F);
+		Vertex var12 = new Vertex(var7, var8, var3, 8.0F, 8.0F);
+		Vertex var16 = new Vertex(var1, var8, var3, 8.0F, 0.0F);
+		Vertex var13 = new Vertex(var1, var2, var9, 0.0F, 0.0F);
+		Vertex var15 = new Vertex(var7, var2, var9, 0.0F, 8.0F);
+		Vertex var17 = new Vertex(var7, var8, var9, 8.0F, 8.0F);
+		Vertex var14 = new Vertex(var1, var8, var9, 8.0F, 0.0F);
+		this.vertices[0] = var10;
+		this.vertices[1] = var11;
+		this.vertices[2] = var12;
+		this.vertices[3] = var16;
+		this.vertices[4] = var13;
+		this.vertices[5] = var15;
+		this.vertices[6] = var17;
+		this.vertices[7] = var14;
+		this.polygons[0] = new Polygon(new Vertex[]{var15, var11, var12, var17}, this.textureOffsetX + var6 + var4, this.textureOffsetY + var6, this.textureOffsetX + var6 + var4 + var6, this.textureOffsetY + var6 + var5);
+		this.polygons[1] = new Polygon(new Vertex[]{var10, var13, var14, var16}, this.textureOffsetX, this.textureOffsetY + var6, this.textureOffsetX + var6, this.textureOffsetY + var6 + var5);
+		this.polygons[2] = new Polygon(new Vertex[]{var15, var13, var10, var11}, this.textureOffsetX + var6, this.textureOffsetY, this.textureOffsetX + var6 + var4, this.textureOffsetY + var6);
+		this.polygons[3] = new Polygon(new Vertex[]{var12, var16, var14, var17}, this.textureOffsetX + var6 + var4, this.textureOffsetY, this.textureOffsetX + var6 + var4 + var4, this.textureOffsetY + var6);
+		this.polygons[4] = new Polygon(new Vertex[]{var11, var10, var16, var12}, this.textureOffsetX + var6, this.textureOffsetY + var6, this.textureOffsetX + var6 + var4, this.textureOffsetY + var6 + var5);
+		this.polygons[5] = new Polygon(new Vertex[]{var13, var15, var17, var14}, this.textureOffsetX + var6 + var4 + var6, this.textureOffsetY + var6, this.textureOffsetX + var6 + var4 + var6 + var4, this.textureOffsetY + var6 + var5);
 	}
 
-	public void setPos(float x, float y, float z) {
-		this.x = x;
-		this.y = y;
-		this.z = z;
+	public final void setPos(float var1, float var2, float var3) {
+		this.x = var1;
+		this.y = var2;
+		this.z = 0.0F;
 	}
 
-	public void render() {
+	public final void render() {
 		if(!this.compiled) {
-			this.compile();
+			Cube var1 = this;
+			this.list = GL11.glGenLists(1);
+			GL11.glNewList(this.list, GL11.GL_COMPILE);
+			GL11.glBegin(GL11.GL_QUADS);
+
+			for(int var2 = 0; var2 < var1.polygons.length; ++var2) {
+				Polygon var3 = var1.polygons[var2];
+				GL11.glColor3f(1.0F, 1.0F, 1.0F);
+
+				for(int var4 = 3; var4 >= 0; --var4) {
+					Vertex var5 = var3.vertices[var4];
+					GL11.glTexCoord2f(var5.u / 63.999F, var5.v / 31.999F);
+					GL11.glVertex3f(var5.pos.x, var5.pos.y, var5.pos.z);
+				}
+			}
+
+			GL11.glEnd();
+			GL11.glEndList();
+			var1.compiled = true;
 		}
 
-		float c = 57.29578F;
+		float var6 = 57.29578F;
 		GL11.glPushMatrix();
 		GL11.glTranslatef(this.x, this.y, this.z);
-		GL11.glRotatef(this.zRot * c, 0.0F, 0.0F, 1.0F);
-		GL11.glRotatef(this.yRot * c, 0.0F, 1.0F, 0.0F);
-		GL11.glRotatef(this.xRot * c, 1.0F, 0.0F, 0.0F);
+		GL11.glRotatef(this.zRot * var6, 0.0F, 0.0F, 1.0F);
+		GL11.glRotatef(this.yRot * var6, 0.0F, 1.0F, 0.0F);
+		GL11.glRotatef(this.xRot * var6, 1.0F, 0.0F, 0.0F);
 		GL11.glCallList(this.list);
 		GL11.glPopMatrix();
-	}
-
-	private void compile() {
-		this.list = GL11.glGenLists(1);
-		GL11.glNewList(this.list, GL11.GL_COMPILE);
-		GL11.glBegin(GL11.GL_QUADS);
-
-		for(int i = 0; i < this.polygons.length; ++i) {
-			this.polygons[i].render();
-		}
-
-		GL11.glEnd();
-		GL11.glEndList();
-		this.compiled = true;
 	}
 }

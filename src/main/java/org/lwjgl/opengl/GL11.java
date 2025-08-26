@@ -13,7 +13,7 @@ import com.mojang.minecraft.renderer.Tesselator;
 
 public class GL11 extends RealOpenGLEnums {
 	
-    private static final Tesselator tess = Tesselator.instance;
+    private static final Tesselator tess = Tesselator.tesselator;
     private static int currentMode = -1;
 
 	public static void glEnable(int p1) {
@@ -120,11 +120,11 @@ public class GL11 extends RealOpenGLEnums {
 	
     public static void glBegin(int mode) {
         currentMode = mode;
-        tess.init(mode);
+        tess.begin(mode);
     }
 
     public static void glEnd() {
-        tess.flush();
+        tess.end();
         currentMode = -1;
     }
 

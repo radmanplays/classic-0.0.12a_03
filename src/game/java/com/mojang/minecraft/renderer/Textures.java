@@ -11,9 +11,9 @@ import net.lax1dude.eaglercraft.internal.buffer.ByteBuffer;
 import net.lax1dude.eaglercraft.internal.buffer.IntBuffer;
 
 public class Textures {
-	private static HashMap<String, Integer> idMap = new HashMap();
+	private HashMap idMap = new HashMap();
 
-	public static int loadTexture(String resourceName, int mode) {
+	public final int loadTexture(String resourceName, int mode) {
         if(idMap.containsKey(resourceName)) {
             return ((Integer)idMap.get(resourceName)).intValue();
         } else {
@@ -22,7 +22,6 @@ public class Textures {
             GL11.glGenTextures(e);
             int id = e.get(0);
             idMap.put(resourceName, Integer.valueOf(id));
-            System.out.println(resourceName + " -> " + id);
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, id);
             int filter = (mode == GL11.GL_NEAREST || mode == GL11.GL_LINEAR) ? mode : GL11.GL_NEAREST;
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, filter);
@@ -35,7 +34,7 @@ public class Textures {
             img.getRGB(0, 0, w, h, rawPixels, 0, w);
 
             for(int i = 0; i < rawPixels.length; ++i) {
-                int a = rawPixels[i] >> 24 & 255;
+                int a = rawPixels[i] >>> 24;
                 int r = rawPixels[i] >> 16 & 255;
                 int g = rawPixels[i] >> 8 & 255;
                 int b = rawPixels[i] & 255;

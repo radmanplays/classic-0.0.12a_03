@@ -2,76 +2,88 @@ package com.mojang.minecraft.level;
 
 import java.util.Random;
 
-public class NoiseMap {
-	Random random = new Random();
-	int seed = this.random.nextInt();
-	int levels = 0;
-	int fuzz = 16;
+public final class NoiseMap {
+	private Random random;
+	private int levels = 0;
+	private int fuzz = 16;
+	private boolean flag;
 
-	public NoiseMap(int levels) {
-		this.levels = levels;
+	public NoiseMap(Random var1, int var2, boolean var3) {
+		this.random = var1;
+		this.levels = var2;
+		this.flag = var3;
 	}
 
-	public int[] read(int width, int height) {
-		Random random = new Random();
-		int[] tmp = new int[width * height];
-		int level = this.levels;
-		int result = width >> level;
+	public final int[] read(int var1, int var2) {
+		int[] var3 = new int[var1 * var2];
+		int var4 = this.levels;
+		int var5 = var1 >> var4;
 
-		int y;
-		int x;
-		for(y = 0; y < height; y += result) {
-			for(x = 0; x < width; x += result) {
-				tmp[x + y * width] = (random.nextInt(256) - 128) * this.fuzz;
-			}
-		}
-
-		for(result = width >> level; result > 1; result /= 2) {
-			y = 256 * (result << level);
-			x = result / 2;
-
-			int y1;
-			int x1;
-			int c;
-			int r;
-			int d;
-			int mu;
-			int ml;
-			for(y1 = 0; y1 < height; y1 += result) {
-				for(x1 = 0; x1 < width; x1 += result) {
-					c = tmp[(x1 + 0) % width + (y1 + 0) % height * width];
-					r = tmp[(x1 + result) % width + (y1 + 0) % height * width];
-					d = tmp[(x1 + 0) % width + (y1 + result) % height * width];
-					mu = tmp[(x1 + result) % width + (y1 + result) % height * width];
-					ml = (c + d + r + mu) / 4 + random.nextInt(y * 2) - y;
-					tmp[x1 + x + (y1 + x) * width] = ml;
-				}
-			}
-
-			for(y1 = 0; y1 < height; y1 += result) {
-				for(x1 = 0; x1 < width; x1 += result) {
-					c = tmp[x1 + y1 * width];
-					r = tmp[(x1 + result) % width + y1 * width];
-					d = tmp[x1 + (y1 + result) % width * width];
-					mu = tmp[(x1 + x & width - 1) + (y1 + x - result & height - 1) * width];
-					ml = tmp[(x1 + x - result & width - 1) + (y1 + x & height - 1) * width];
-					int m = tmp[(x1 + x) % width + (y1 + x) % height * width];
-					int u = (c + r + m + mu) / 4 + random.nextInt(y * 2) - y;
-					int l = (c + d + m + ml) / 4 + random.nextInt(y * 2) - y;
-					tmp[x1 + x + y1 * width] = u;
-					tmp[x1 + (y1 + x) * width] = l;
+		int var6;
+		int var7;
+		for(var6 = 0; var6 < var2; var6 += var5) {
+			for(var7 = 0; var7 < var1; var7 += var5) {
+				var3[var7 + var6 * var1] = (this.random.nextInt(256) - 128) * this.fuzz;
+				if(this.flag) {
+					if(var7 != 0 && var6 != 0) {
+						boolean var8 = false;
+						var3[var7 + var6 * var1] = (this.random.nextInt(192) - 64) * this.fuzz;
+					} else {
+						var3[var7 + var6 * var1] = 0;
+					}
 				}
 			}
 		}
 
-		int[] var19 = new int[width * height];
+		for(var5 = var1 >> var4; var5 > 1; var5 /= 2) {
+			var6 = 256 * (var5 << var4);
+			var7 = var5 / 2;
 
-		for(y = 0; y < height; ++y) {
-			for(x = 0; x < width; ++x) {
-				var19[x + y * width] = tmp[x % width + y % height * width] / 512 + 128;
+			int var9;
+			int var10;
+			int var11;
+			int var12;
+			int var13;
+			int var14;
+			int var17;
+			for(var17 = 0; var17 < var2; var17 += var5) {
+				for(var9 = 0; var9 < var1; var9 += var5) {
+					var10 = var3[var9 % var1 + var17 % var2 * var1];
+					var11 = var3[(var9 + var5) % var1 + var17 % var2 * var1];
+					var12 = var3[var9 % var1 + (var17 + var5) % var2 * var1];
+					var13 = var3[(var9 + var5) % var1 + (var17 + var5) % var2 * var1];
+					var14 = (var10 + var12 + var11 + var13) / 4 + this.random.nextInt(var6 << 1) - var6;
+					var3[var9 + var7 + (var17 + var7) * var1] = var14;
+					if(this.flag && (var9 == 0 || var17 == 0)) {
+						var3[var9 + var17 * var1] = 0;
+					}
+				}
+			}
+
+			for(var17 = 0; var17 < var2; var17 += var5) {
+				for(var9 = 0; var9 < var1; var9 += var5) {
+					var10 = var3[var9 + var17 * var1];
+					var11 = var3[(var9 + var5) % var1 + var17 * var1];
+					var12 = var3[var9 + (var17 + var5) % var1 * var1];
+					var13 = var3[(var9 + var7 & var1 - 1) + (var17 + var7 - var5 & var2 - 1) * var1];
+					var14 = var3[(var9 + var7 - var5 & var1 - 1) + (var17 + var7 & var2 - 1) * var1];
+					int var15 = var3[(var9 + var7) % var1 + (var17 + var7) % var2 * var1];
+					var11 = (var10 + var11 + var15 + var13) / 4 + this.random.nextInt(var6 << 1) - var6;
+					var10 = (var10 + var12 + var15 + var14) / 4 + this.random.nextInt(var6 << 1) - var6;
+					var3[var9 + var7 + var17 * var1] = var11;
+					var3[var9 + (var17 + var7) * var1] = var10;
+				}
 			}
 		}
 
-		return var19;
+		int[] var16 = new int[var1 * var2];
+
+		for(var6 = 0; var6 < var2; ++var6) {
+			for(var7 = 0; var7 < var1; ++var7) {
+				var16[var7 + var6 * var1] = var3[var7 % var1 + var6 % var2 * var1] / 512 + 128;
+			}
+		}
+
+		return var16;
 	}
 }

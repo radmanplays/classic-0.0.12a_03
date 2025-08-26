@@ -1,130 +1,205 @@
 package com.mojang.minecraft.level;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import org.lwjgl.opengl.GL11;
-
 import com.mojang.minecraft.HitResult;
 import com.mojang.minecraft.Player;
 import com.mojang.minecraft.level.tile.Tile;
-import com.mojang.minecraft.phys.AABB;
-import com.mojang.minecraft.renderer.Frustum;
 import com.mojang.minecraft.renderer.Tesselator;
 import com.mojang.minecraft.renderer.Textures;
+import java.util.Arrays;
+import org.lwjgl.opengl.GL11;
 
-public class LevelRenderer implements LevelListener {
-	public static final int MAX_REBUILDS_PER_FRAME = 8;
-	public static final int CHUNK_SIZE = 16;
-	private Level level;
-	private Chunk[] chunks;
-	private int xChunks;
-	private int yChunks;
-	private int zChunks;
-	private Textures textures;
+public final class LevelRenderer {
+	public Level level;
+	public Chunk[] chunks;
+	private Chunk[] sortedChunks;
+	private int chunkX;
+	private int chunkY;
+	private int chunkZ;
+	private Textures textureManager;
+	public int surroundLists;
+	public int drawDistance = 0;
+	private float X = 0.0F;
+	private float Y = 0.0F;
+	private float Z = 0.0F;
 
-	public LevelRenderer(Level level, Textures textures) {
-		this.level = level;
-		this.textures = textures;
-		level.addListener(this);
-		this.xChunks = level.width / 16;
-		this.yChunks = level.depth / 16;
-		this.zChunks = level.height / 16;
-		this.chunks = new Chunk[this.xChunks * this.yChunks * this.zChunks];
+	public LevelRenderer(Level var1, Textures var2) {
+		this.level = var1;
+		this.textureManager = var2;
+		var1.levelListeners.add(this);
+		this.chunkX = (var1.width + 16 - 1) / 16;
+		this.chunkY = (var1.depth + 16 - 1) / 16;
+		this.chunkZ = (var1.height + 16 - 1) / 16;
+		this.chunks = new Chunk[this.chunkX * this.chunkY * this.chunkZ];
+		this.sortedChunks = new Chunk[this.chunkX * this.chunkY * this.chunkZ];
 
-		for(int x = 0; x < this.xChunks; ++x) {
-			for(int y = 0; y < this.yChunks; ++y) {
-				for(int z = 0; z < this.zChunks; ++z) {
-					int x0 = x * 16;
-					int y0 = y * 16;
-					int z0 = z * 16;
-					int x1 = (x + 1) * 16;
-					int y1 = (y + 1) * 16;
-					int z1 = (z + 1) * 16;
-					if(x1 > level.width) {
-						x1 = level.width;
+		for(int var11 = 0; var11 < this.chunkX; ++var11) {
+			for(int var3 = 0; var3 < this.chunkY; ++var3) {
+				for(int var4 = 0; var4 < this.chunkZ; ++var4) {
+					int var5 = var11 << 4;
+					int var6 = var3 << 4;
+					int var7 = var4 << 4;
+					int var8 = var11 + 1 << 4;
+					int var9 = var3 + 1 << 4;
+					int var10 = var4 + 1 << 4;
+					if(var8 > var1.width) {
+						var8 = var1.width;
 					}
 
-					if(y1 > level.depth) {
-						y1 = level.depth;
+					if(var9 > var1.depth) {
+						var9 = var1.depth;
 					}
 
-					if(z1 > level.height) {
-						z1 = level.height;
+					if(var10 > var1.height) {
+						var10 = var1.height;
 					}
 
-					this.chunks[(x + y * this.xChunks) * this.zChunks + z] = new Chunk(level, x0, y0, z0, x1, y1, z1);
+					this.chunks[(var11 + var3 * this.chunkX) * this.chunkZ + var4] = new Chunk(var1, var5, var6, var7, var8, var9, var10);
+					this.sortedChunks[(var11 + var3 * this.chunkX) * this.chunkZ + var4] = this.chunks[(var11 + var3 * this.chunkX) * this.chunkZ + var4];
 				}
 			}
 		}
 
+		this.surroundLists = GL11.glGenLists(2);
+		GL11.glNewList(this.surroundLists, GL11.GL_COMPILE);
+		this.compileSurroundingGround();
+		GL11.glEndList();
+		GL11.glNewList(this.surroundLists + 1, GL11.GL_COMPILE);
+		this.compileSurroundingWater();
+		GL11.glEndList();
 	}
-	
-	public List<Chunk> getAllDirtyChunks() {
-		ArrayList dirty = null;
 
-		for(int i = 0; i < this.chunks.length; ++i) {
-			Chunk chunk = this.chunks[i];
-			if(chunk.isDirty()) {
-				if(dirty == null) {
-					dirty = new ArrayList();
-				}
-
-				dirty.add(chunk);
-			}
-		}
-
-		return dirty;
-	}
-	
-	public void render(Player player, int layer) {
+	public final void render(Player var1, int var2) {
 		GL11.glEnable(GL11.GL_TEXTURE_2D);
-		int id = this.textures.loadTexture("/terrain.png", 9728);
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, id);
-		Frustum frustum = Frustum.getFrustum();
+		GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.textureManager.loadTexture("/terrain.png", GL11.GL_NEAREST));
+		float var3 = var1.x - this.X;
+		float var4 = var1.y - this.Y;
+		float var5 = var1.z - this.Z;
+		if(var3 * var3 + var4 * var4 + var5 * var5 > 64.0F) {
+			this.X = var1.x;
+			this.Y = var1.y;
+			this.Z = var1.z;
+			Arrays.sort(this.sortedChunks, new DistanceSorter(var1));
+		}
 
-		for(int i = 0; i < this.chunks.length; ++i) {
-			if(frustum.isVisible(this.chunks[i].aabb)) {
-				this.chunks[i].render(layer);
+		for(int var6 = 0; var6 < this.sortedChunks.length; ++var6) {
+			if(this.sortedChunks[var6].visible) {
+				var4 = (float)(256 / (1 << this.drawDistance));
+				if(this.drawDistance == 0 || this.sortedChunks[var6].distanceToSqr(var1) < var4 * var4) {
+					this.sortedChunks[var6].render(var2);
+				}
 			}
 		}
 
 		GL11.glDisable(GL11.GL_TEXTURE_2D);
 	}
 
-	public void updateDirtyChunks(Player player) {
-		List dirty = this.getAllDirtyChunks();
-		if(dirty != null) {
-			Collections.sort(dirty, new DirtyChunkSorter(player, Frustum.getFrustum()));
+	private void compileSurroundingGround() {
+		GL11.glEnable(GL11.GL_TEXTURE_2D);
+		GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.textureManager.loadTexture("/rock.png", GL11.GL_NEAREST));
+		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+		Tesselator var1 = Tesselator.tesselator;
+		float var2 = 32.0F - 2.0F;
+		var1.begin();
 
-			for(int i = 0; i < 8 && i < dirty.size(); ++i) {
-				((Chunk)dirty.get(i)).rebuild();
+		int var3;
+		for(var3 = -640; var3 < this.level.width + 640; var3 += 128) {
+			for(int var4 = -640; var4 < this.level.height + 640; var4 += 128) {
+				float var5 = var2;
+				if(var3 >= 0 && var4 >= 0 && var3 < this.level.width && var4 < this.level.height) {
+					var5 = 0.0F;
+				}
+
+				var1.vertexUV((float)var3, var5, (float)(var4 + 128), 0.0F, (float)128);
+				var1.vertexUV((float)(var3 + 128), var5, (float)(var4 + 128), (float)128, (float)128);
+				var1.vertexUV((float)(var3 + 128), var5, (float)var4, (float)128, 0.0F);
+				var1.vertexUV((float)var3, var5, (float)var4, 0.0F, 0.0F);
 			}
-
 		}
+
+		var1.end();
+		GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.textureManager.loadTexture("/rock.png", GL11.GL_NEAREST));
+		GL11.glColor3f(0.8F, 0.8F, 0.8F);
+		var1.begin();
+
+		for(var3 = 0; var3 < this.level.width; var3 += 128) {
+			var1.vertexUV((float)var3, 0.0F, 0.0F, 0.0F, 0.0F);
+			var1.vertexUV((float)(var3 + 128), 0.0F, 0.0F, (float)128, 0.0F);
+			var1.vertexUV((float)(var3 + 128), var2, 0.0F, (float)128, var2);
+			var1.vertexUV((float)var3, var2, 0.0F, 0.0F, var2);
+			var1.vertexUV((float)var3, var2, (float)this.level.height, 0.0F, var2);
+			var1.vertexUV((float)(var3 + 128), var2, (float)this.level.height, (float)128, var2);
+			var1.vertexUV((float)(var3 + 128), 0.0F, (float)this.level.height, (float)128, 0.0F);
+			var1.vertexUV((float)var3, 0.0F, (float)this.level.height, 0.0F, 0.0F);
+		}
+
+		GL11.glColor3f(0.6F, 0.6F, 0.6F);
+
+		for(var3 = 0; var3 < this.level.height; var3 += 128) {
+			var1.vertexUV(0.0F, var2, (float)var3, 0.0F, 0.0F);
+			var1.vertexUV(0.0F, var2, (float)(var3 + 128), (float)128, 0.0F);
+			var1.vertexUV(0.0F, 0.0F, (float)(var3 + 128), (float)128, var2);
+			var1.vertexUV(0.0F, 0.0F, (float)var3, 0.0F, var2);
+			var1.vertexUV((float)this.level.width, 0.0F, (float)var3, 0.0F, var2);
+			var1.vertexUV((float)this.level.width, 0.0F, (float)(var3 + 128), (float)128, var2);
+			var1.vertexUV((float)this.level.width, var2, (float)(var3 + 128), (float)128, 0.0F);
+			var1.vertexUV((float)this.level.width, var2, (float)var3, 0.0F, 0.0F);
+		}
+
+		var1.end();
+		GL11.glDisable(GL11.GL_BLEND);
+		GL11.glDisable(GL11.GL_TEXTURE_2D);
 	}
 
+	private void compileSurroundingWater() {
+		GL11.glEnable(GL11.GL_TEXTURE_2D);
+		GL11.glColor3f(1.0F, 1.0F, 1.0F);
+		GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.textureManager.loadTexture("/water.png", GL11.GL_NEAREST));
+		float var1 = 32.0F;
+		GL11.glEnable(GL11.GL_BLEND);
+		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+		Tesselator var2 = Tesselator.tesselator;
+		var2.begin();
 
-	public void renderHit(HitResult h, int mode, int tileType) {
-		Tesselator t = Tesselator.instance;
+		for(int var3 = -640; var3 < this.level.width + 640; var3 += 128) {
+			for(int var4 = -640; var4 < this.level.height + 640; var4 += 128) {
+				float var5 = var1 - 0.1F;
+				if(var3 < 0 || var4 < 0 || var3 >= this.level.width || var4 >= this.level.height) {
+					var2.vertexUV((float)var3, var5, (float)(var4 + 128), 0.0F, (float)128);
+					var2.vertexUV((float)(var3 + 128), var5, (float)(var4 + 128), (float)128, (float)128);
+					var2.vertexUV((float)(var3 + 128), var5, (float)var4, (float)128, 0.0F);
+					var2.vertexUV((float)var3, var5, (float)var4, 0.0F, 0.0F);
+					var2.vertexUV((float)var3, var5, (float)var4, 0.0F, 0.0F);
+					var2.vertexUV((float)(var3 + 128), var5, (float)var4, (float)128, 0.0F);
+					var2.vertexUV((float)(var3 + 128), var5, (float)(var4 + 128), (float)128, (float)128);
+					var2.vertexUV((float)var3, var5, (float)(var4 + 128), 0.0F, (float)128);
+				}
+			}
+		}
+
+		var2.end();
+		GL11.glDisable(GL11.GL_BLEND);
+		GL11.glDisable(GL11.GL_TEXTURE_2D);
+	}
+	public void renderHit(Player var1, HitResult h, int mode, int tileType) {
+		Tesselator t = Tesselator.tesselator;
 		GL11.glEnable(GL11.GL_BLEND);
 		GL11.glEnable(GL11.GL_ALPHA_TEST);
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
 		GL11.glColor4f(1.0F, 1.0F, 1.0F, ((float)Math.sin((double)System.currentTimeMillis() / 100.0D) * 0.2F + 0.4F) * 0.5F);
 		if(mode == 0) {
-			t.init();
+			t.begin();
 
 			for(int br = 0; br < 6; ++br) {
-				Tile.rock.renderFaceNoTexture(t, h.x, h.y, h.z, br);
+				Tile.renderFaceNoTexture(var1, t, h.x, h.y, h.z, br);
 			}
 
-			t.flush();
+			t.end();
 		} else {
 			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 			float var10 = (float)Math.sin((double)System.currentTimeMillis() / 100.0D) * 0.2F + 0.8F;
 			GL11.glColor4f(var10, var10, var10, (float)Math.sin((double)System.currentTimeMillis() / 200.0D) * 0.2F + 0.5F);
 			GL11.glEnable(GL11.GL_TEXTURE_2D);
-			int id = this.textures.loadTexture("/terrain.png", 9728);
+			int id = this.textureManager.loadTexture("/terrain.png", 9728);
 			GL11.glBindTexture(GL11.GL_TEXTURE_2D, id);
 			int x = h.x;
 			int y = h.y;
@@ -153,68 +228,62 @@ public class LevelRenderer implements LevelListener {
 				++x;
 			}
 
-			t.init();
+			t.begin();
 			t.noColor();
 			Tile.tiles[tileType].render(t, this.level, 0, x, y, z);
 			Tile.tiles[tileType].render(t, this.level, 1, x, y, z);
-			t.flush();
+			t.end();
 			GL11.glDisable(GL11.GL_TEXTURE_2D);
 		}
 		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 		GL11.glDisable(GL11.GL_BLEND);
 		GL11.glDisable(GL11.GL_ALPHA_TEST);
 	}
-	
-	public void setDirty(int x0, int y0, int z0, int x1, int y1, int z1) {
-		x0 /= 16;
-		x1 /= 16;
-		y0 /= 16;
-		y1 /= 16;
-		z0 /= 16;
-		z1 /= 16;
-		if(x0 < 0) {
-			x0 = 0;
+	public final void setDirty(int var1, int var2, int var3, int var4, int var5, int var6) {
+		var1 /= 16;
+		var4 /= 16;
+		var2 /= 16;
+		var5 /= 16;
+		var3 /= 16;
+		var6 /= 16;
+		if(var1 < 0) {
+			var1 = 0;
 		}
 
-		if(y0 < 0) {
-			y0 = 0;
+		if(var2 < 0) {
+			var2 = 0;
 		}
 
-		if(z0 < 0) {
-			z0 = 0;
+		if(var3 < 0) {
+			var3 = 0;
 		}
 
-		if(x1 >= this.xChunks) {
-			x1 = this.xChunks - 1;
+		if(var4 >= this.chunkX) {
+			var4 = this.chunkX - 1;
 		}
 
-		if(y1 >= this.yChunks) {
-			y1 = this.yChunks - 1;
+		if(var5 >= this.chunkY) {
+			var5 = this.chunkY - 1;
 		}
 
-		if(z1 >= this.zChunks) {
-			z1 = this.zChunks - 1;
+		if(var6 >= this.chunkZ) {
+			var6 = this.chunkZ - 1;
 		}
 
-		for(int x = x0; x <= x1; ++x) {
-			for(int y = y0; y <= y1; ++y) {
-				for(int z = z0; z <= z1; ++z) {
-					this.chunks[(x + y * this.xChunks) * this.zChunks + z].setDirty();
+		for(var1 = var1; var1 <= var4; ++var1) {
+			for(int var7 = var2; var7 <= var5; ++var7) {
+				for(int var8 = var3; var8 <= var6; ++var8) {
+					this.chunks[(var1 + var7 * this.chunkX) * this.chunkZ + var8].setDirty();
 				}
 			}
 		}
 
 	}
 
-	public void tileChanged(int x, int y, int z) {
-		this.setDirty(x - 1, y - 1, z - 1, x + 1, y + 1, z + 1);
-	}
+	public final void resetChunks() {
+		for(int var1 = 0; var1 < this.chunks.length; ++var1) {
+			this.chunks[var1].reset();
+		}
 
-	public void lightColumnChanged(int x, int z, int y0, int y1) {
-		this.setDirty(x - 1, y0 - 1, z - 1, x + 1, y1 + 1, z + 1);
-	}
-
-	public void allChanged() {
-		this.setDirty(0, 0, 0, this.level.width, this.level.depth, this.level.height);
 	}
 }

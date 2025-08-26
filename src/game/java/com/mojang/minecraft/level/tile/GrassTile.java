@@ -1,32 +1,34 @@
 package com.mojang.minecraft.level.tile;
 
+import com.mojang.minecraft.level.Level;
 import java.util.Random;
 
-import com.mojang.minecraft.level.Level;
-
-public class GrassTile extends Tile {
-	protected GrassTile(int id) {
-		super(id);
-		this.tex = 3;
+public final class GrassTile extends Tile {
+	protected GrassTile(int var1) {
+		super(2);
+		this.textureIndex = 3;
+		this.setTicking(true);
 	}
 
-	protected int getTexture(int face) {
-		return face == 1 ? 0 : (face == 0 ? 2 : 3);
+	protected final int getTexture(int var1) {
+		return var1 == 1 ? 0 : (var1 == 0 ? 2 : 3);
 	}
 
-	public void tick(Level level, int x, int y, int z, Random random) {
-		if(!level.isLit(x, y, z)) {
-			level.setTile(x, y, z, Tile.dirt.id);
-		} else {
-			for(int i = 0; i < 4; ++i) {
-				int xt = x + random.nextInt(3) - 1;
-				int yt = y + random.nextInt(5) - 3;
-				int zt = z + random.nextInt(3) - 1;
-				if(level.getTile(xt, yt, zt) == Tile.dirt.id && level.isLit(xt, yt, zt)) {
-					level.setTile(xt, yt, zt, Tile.grass.id);
+	public final void tick(Level var1, int var2, int var3, int var4, Random var5) {
+		if(var5.nextInt(4) == 0) {
+			if(!var1.isLit(var2, var3 + 1, var4)) {
+				var1.setTile(var2, var3, var4, Tile.dirt.id);
+			} else {
+				for(int var9 = 0; var9 < 4; ++var9) {
+					int var6 = var2 + var5.nextInt(3) - 1;
+					int var7 = var3 + var5.nextInt(5) - 3;
+					int var8 = var4 + var5.nextInt(3) - 1;
+					if(var1.getTile(var6, var7, var8) == Tile.dirt.id && var1.isLit(var6, var7 + 1, var8)) {
+						var1.setTile(var6, var7, var8, Tile.grass.id);
+					}
 				}
+
 			}
 		}
-
 	}
 }
