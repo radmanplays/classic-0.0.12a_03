@@ -1,6 +1,9 @@
 package com.mojang.minecraft.level;
 
+import com.mojang.minecraft.HitResult;
 import com.mojang.minecraft.Minecraft;
+import com.mojang.minecraft.character.Vec3;
+import com.mojang.minecraft.level.tile.LiquidTile;
 import com.mojang.minecraft.level.tile.Tile;
 import com.mojang.minecraft.phys.AABB;
 
@@ -475,5 +478,129 @@ public final class Level {
 		}
 
 		return var11;
+	}
+	
+	public HitResult clip(Vec3 var1, Vec3 var2) {
+		if(!Float.isNaN(var1.x) && !Float.isNaN(var1.y) && !Float.isNaN(var1.z)) {
+			if(!Float.isNaN(var2.x) && !Float.isNaN(var2.y) && !Float.isNaN(var2.z)) {
+				int var3 = (int)Math.floor((double)var2.x);
+				int var4 = (int)Math.floor((double)var2.y);
+				int var5 = (int)Math.floor((double)var2.z);
+				int var6 = (int)Math.floor((double)var1.x);
+				int var7 = (int)Math.floor((double)var1.y);
+				int var8 = (int)Math.floor((double)var1.z);
+
+				while(!Float.isNaN(var1.x) && !Float.isNaN(var1.y) && !Float.isNaN(var1.z)) {
+					if(var6 == var3 && var7 == var4 && var8 == var5) {
+						return null;
+					}
+
+					float var9 = 999.0F;
+					float var10 = 999.0F;
+					float var11 = 999.0F;
+					if(var3 > var6) {
+						var9 = (float)var6 + 1.0F;
+					}
+
+					if(var3 < var6) {
+						var9 = (float)var6;
+					}
+
+					if(var4 > var7) {
+						var10 = (float)var7 + 1.0F;
+					}
+
+					if(var4 < var7) {
+						var10 = (float)var7;
+					}
+
+					if(var5 > var8) {
+						var11 = (float)var8 + 1.0F;
+					}
+
+					if(var5 < var8) {
+						var11 = (float)var8;
+					}
+
+					float var12 = 999.0F;
+					float var13 = 999.0F;
+					float var14 = 999.0F;
+					float var15 = var2.x - var1.x;
+					float var16 = var2.y - var1.y;
+					float var17 = var2.z - var1.z;
+					if(var9 != 999.0F) {
+						var12 = (var9 - var1.x) / var15;
+					}
+
+					if(var10 != 999.0F) {
+						var13 = (var10 - var1.y) / var16;
+					}
+
+					if(var11 != 999.0F) {
+						var14 = (var11 - var1.z) / var17;
+					}
+
+					boolean var18 = false;
+					byte var20;
+					if(var12 < var13 && var12 < var14) {
+						if(var3 > var6) {
+							var20 = 4;
+						} else {
+							var20 = 5;
+						}
+
+						var1.x = var9;
+						var1.y += var16 * var12;
+						var1.z += var17 * var12;
+					} else if(var13 < var14) {
+						if(var4 > var7) {
+							var20 = 0;
+						} else {
+							var20 = 1;
+						}
+
+						var1.x += var15 * var13;
+						var1.y = var10;
+						var1.z += var17 * var13;
+					} else {
+						if(var5 > var8) {
+							var20 = 2;
+						} else {
+							var20 = 3;
+						}
+
+						var1.x += var15 * var14;
+						var1.y += var16 * var14;
+						var1.z = var11;
+					}
+
+					var6 = (int)Math.floor((double)var1.x);
+					if(var20 == 5) {
+						--var6;
+					}
+
+					var7 = (int)Math.floor((double)var1.y);
+					if(var20 == 1) {
+						--var7;
+					}
+
+					var8 = (int)Math.floor((double)var1.z);
+					if(var20 == 3) {
+						--var8;
+					}
+
+					int var19 = this.getTile(var6, var7, var8);
+					if(var19 > 0 && Tile.tiles[var19].getLiquidType() == 0) {
+						return new HitResult(0, var6, var7, var8, var20);
+					}
+				}
+
+				return null;
+			} else {
+				return null;
+			}
+		} else {
+			return null;
+		}
 	}
 }

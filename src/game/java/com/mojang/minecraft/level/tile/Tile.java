@@ -52,35 +52,38 @@ public class Tile {
 		this.textureIndex = var2;
 	}
 
-	public void render(Tesselator var1, Level var2, int var3, int var4, int var5, int var6) {
-		if(this.shouldRenderFace(var2, var4, var5 - 1, var6, var3)) {
-			var1.color((byte)-1, (byte)-1, (byte)-1);
-			this.renderFace(var1, var4, var5, var6, 0);
+	public void render(Tesselator t, Level level, int layer, int x, int y, int z) {
+		float c1 = 1.0F;
+		float c2 = 0.8F;
+		float c3 = 0.6F;
+		if(this.shouldRenderFace(level, x, y - 1, z, layer)) {
+			t.color(c1, c1, c1);
+			this.renderFace(t, x, y, z, 0);
 		}
 
-		if(this.shouldRenderFace(var2, var4, var5 + 1, var6, var3)) {
-			var1.color((byte)-1, (byte)-1, (byte)-1);
-			this.renderFace(var1, var4, var5, var6, 1);
+		if(this.shouldRenderFace(level, x, y + 1, z, layer)) {
+			t.color(c1, c1, c1);
+			this.renderFace(t, x, y, z, 1);
 		}
 
-		if(this.shouldRenderFace(var2, var4, var5, var6 - 1, var3)) {
-			var1.color((byte)-52, (byte)-52, (byte)-52);
-			this.renderFace(var1, var4, var5, var6, 2);
+		if(this.shouldRenderFace(level, x, y, z - 1, layer)) {
+			t.color(c2, c2, c2);
+			this.renderFace(t, x, y, z, 2);
 		}
 
-		if(this.shouldRenderFace(var2, var4, var5, var6 + 1, var3)) {
-			var1.color((byte)-52, (byte)-52, (byte)-52);
-			this.renderFace(var1, var4, var5, var6, 3);
+		if(this.shouldRenderFace(level, x, y, z + 1, layer)) {
+			t.color(c2, c2, c2);
+			this.renderFace(t, x, y, z, 3);
 		}
 
-		if(this.shouldRenderFace(var2, var4 - 1, var5, var6, var3)) {
-			var1.color((byte)-103, (byte)-103, (byte)-103);
-			this.renderFace(var1, var4, var5, var6, 4);
+		if(this.shouldRenderFace(level, x - 1, y, z, layer)) {
+			t.color(c3, c3, c3);
+			this.renderFace(t, x, y, z, 4);
 		}
 
-		if(this.shouldRenderFace(var2, var4 + 1, var5, var6, var3)) {
-			var1.color((byte)-103, (byte)-103, (byte)-103);
-			this.renderFace(var1, var4, var5, var6, 5);
+		if(this.shouldRenderFace(level, x + 1, y, z, layer)) {
+			t.color(c3, c3, c3);
+			this.renderFace(t, x, y, z, 5);
 		}
 
 	}
@@ -220,18 +223,12 @@ public class Tile {
 	}
 
 	public static void renderFaceNoTexture(Player var0, Tesselator var1, int var2, int var3, int var4, int var5) {
-//		float x0 = (float)x - 0.001F;
-//		float x1 = (float)x + 1.001F;
-//		float y0 = (float)y - 0.001F;
-//		float y1 = (float)y + 1.001F;
-//		float z0 = (float)z - 0.001F;
-//		float z1 = (float)z + 1.001F;
-		float var6 = (float)var2;
-		float var7 = (float)var2 + 1.0F;
-		float var8 = (float)var3;
-		float var9 = (float)var3 + 1.0F;
-		float var10 = (float)var4;
-		float var11 = (float)var4 + 1.0F;
+		float var6 = (float)var2 - 0.001F;
+		float var7 = (float)var2 + 1.001F;
+		float var8 = (float)var3 - 0.001F;
+		float var9 = (float)var3 + 1.001F;
+		float var10 = (float)var4 - 0.001F;
+		float var11 = (float)var4 + 1.001F;
 		if(var5 == 0 && (float)var3 > var0.y) {
 			var1.vertex(var6, var8, var11);
 			var1.vertex(var6, var8, var10);

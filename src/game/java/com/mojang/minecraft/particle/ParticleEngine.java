@@ -49,6 +49,7 @@ public final class ParticleEngine {
 			}
 
 			var8.end();
+			GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 			GL11.glDisable(GL11.GL_TEXTURE_2D);
 		}
 	}

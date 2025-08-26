@@ -1,5 +1,6 @@
 package com.mojang.minecraft;
 
+import com.mojang.minecraft.character.Vec3;
 import com.mojang.minecraft.character.Zombie;
 import com.mojang.minecraft.gui.Font;
 import com.mojang.minecraft.level.Chunk;
@@ -460,65 +461,37 @@ public final class Minecraft implements Runnable {
 		}
 
 		this.reportGLError("Set viewport");
-	    double px = thePlayer.x;
-	    double py = thePlayer.y;
-	    double pz = thePlayer.z;
+		float pitch = this.thePlayer.pitch;
+		float yaw = this.thePlayer.yaw;
 
-	    float yaw = (float) Math.toRadians(thePlayer.yaw);
-	    float pitch = (float) Math.toRadians(thePlayer.pitch);
+		double px = this.thePlayer.x;
+		double py = this.thePlayer.y;
+		double pz = this.thePlayer.z;
 
-	    double dx = Math.sin(yaw) * Math.cos(pitch);
-	    double dy = -Math.sin(pitch);
-	    double dz = -Math.cos(yaw) * Math.cos(pitch);
+		Vec3 cameraPos = new Vec3((float)px, (float)py, (float)pz);
 
-	    double reach = 3.0;
-	    double step = 0.05;
+		float cosYaw = (float)Math.cos(-Math.toRadians(yaw) - Math.PI);
+		float sinYaw = (float)Math.sin(-Math.toRadians(yaw) - Math.PI);
+		float cosPitch = (float)Math.cos(-Math.toRadians(pitch));
+		float sinPitch = (float)Math.sin(-Math.toRadians(pitch));
 
-	    HitResult closestHit = null;
+		float dirX = sinYaw * cosPitch;
+		float dirY = sinPitch;
+		float dirZ = cosYaw * cosPitch;
+		float reachDistance = 3.0F;
+		if (pitch > 60.0F) {
+		    reachDistance += 1.0F;
+		}
+		if (pitch >= 55.0F && pitch <= 60.0F) {
+		    reachDistance += 2.0F;
+		}
+		Vec3 reachVec = new Vec3(
+		    cameraPos.x + dirX * reachDistance,
+		    cameraPos.y + dirY * reachDistance,
+		    cameraPos.z + dirZ * reachDistance
+		);
 
-	    double closestT = reach + 1;
-
-	    for (int x = (int) Math.floor(px - reach); x <= (int) Math.floor(px + reach); x++) {
-	        for (int y = (int) Math.floor(py - (reach + 1)); y <= (int) Math.floor(py + (reach + 1)); y++) {
-	            for (int z = (int) Math.floor(pz - reach); z <= (int) Math.floor(pz + reach); z++) {
-	                int block = level.getTile(x, y, z);
-	                if (block != 0) {
-
-	                    double txmin = (x - px) / dx;
-	                    double txmax = (x + 1 - px) / dx;
-	                    if (txmin > txmax) { double temp = txmin; txmin = txmax; txmax = temp; }
-
-	                    double tymin = (y - py) / dy;
-	                    double tymax = (y + 1 - py) / dy;
-	                    if (tymin > tymax) { double temp = tymin; tymin = tymax; tymax = temp; }
-
-	                    double tzmin = (z - pz) / dz;
-	                    double tzmax = (z + 1 - pz) / dz;
-	                    if (tzmin > tzmax) { double temp = tzmin; tzmin = tzmax; tzmax = temp; }
-
-	                    double tEnter = Math.max(Math.max(txmin, tymin), tzmin);
-	                    double tExit = Math.min(Math.min(txmax, tymax), tzmax);
-
-	                    if (tEnter <= tExit && tEnter < closestT && tEnter >= 0 && tEnter <= reach + 1) {
-	                        closestT = tEnter;
-
-	                        int face;
-	                        if (tEnter == txmin) {
-	                            face = dx > 0 ? 4 : 5;
-	                        } else if (tEnter == tymin) {
-	                            face = dy > 0 ? 0 : 1;
-	                        } else {
-	                            face = dz > 0 ? 2 : 3;
-	                        }
-
-	                        closestHit = new HitResult(block, x, y, z, face);
-	                    }
-	                }
-	            }
-	        }
-	    }
-
-	    this.hitResult = closestHit;
+		this.hitResult = this.level.clip(cameraPos, reachVec);
 		this.reportGLError("Picked");
 		GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_COLOR_BUFFER_BIT);
 		GL11.glMatrixMode(GL11.GL_PROJECTION);
@@ -593,7 +566,6 @@ public final class Minecraft implements Runnable {
 		this.particleEngine.render(this.thePlayer, var1, 1);
 		var22 = this.levelRenderer;
 		GL11.glCallList(var22.surroundLists);
-		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		this.setupFog(0);
 		var22 = this.levelRenderer;
 		GL11.glCallList(var22.surroundLists + 1);
@@ -631,6 +603,7 @@ public final class Minecraft implements Runnable {
 		GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
 		GL11.glTranslatef(-1.5F, 0.5F, -0.5F);
 		GL11.glScalef(-1.0F, -1.0F, 1.0F);
+		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 		int var30 = this.textureManager.loadTexture("/terrain.png", 9728);
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, var30);
 		GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -639,6 +612,7 @@ public final class Minecraft implements Runnable {
 		var33.end();
 		GL11.glDisable(GL11.GL_TEXTURE_2D);
 		GL11.glPopMatrix();
+		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 		reportGLError("GUI: Draw selected");
 		this.font.drawShadow("0.0.12a_03", 2, 2, 16777215);
 		this.font.drawShadow(this.fpsString, 2, 12, 16777215);
@@ -680,14 +654,14 @@ public final class Minecraft implements Runnable {
 //			GL11.glLightModel(GL11.GL_LIGHT_MODEL_AMBIENT, this.getBuffer(1.0F, 1.0F, 1.0F, 1.0F));
 		} else if(var1 == 1) {
 			GL11.glFogi(GL11.GL_FOG_MODE, GL11.GL_EXP);
-			GL11.glFogf(GL11.GL_FOG_DENSITY, 0.01F);
+			GL11.glFogf(GL11.GL_FOG_DENSITY, 0.05F);
 			GL11.glFog(GL11.GL_FOG_COLOR, this.fogColor1);
 			float var3 = 0.6F;
 //			GL11.glLightModel(GL11.GL_LIGHT_MODEL_AMBIENT, this.getBuffer(var3, var3, var3, 1.0F));
 		}
 
-		GL11.glEnable(GL11.GL_COLOR_MATERIAL);
-		GL11.glColorMaterial(GL11.GL_FRONT, GL11.GL_AMBIENT);
+//		GL11.glEnable(GL11.GL_COLOR_MATERIAL);
+//		GL11.glColorMaterial(GL11.GL_FRONT, GL11.GL_AMBIENT);
 		GL11.glEnable(GL11.GL_LIGHTING);
 	}
 
