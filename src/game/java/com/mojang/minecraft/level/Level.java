@@ -490,7 +490,9 @@ public final class Level {
 				int var7 = (int)Math.floor((double)var1.y);
 				int var8 = (int)Math.floor((double)var1.z);
 
-				while(!Float.isNaN(var1.x) && !Float.isNaN(var1.y) && !Float.isNaN(var1.z)) {
+				int var50 = 20;
+				
+				while(!Float.isNaN(var1.x) && !Float.isNaN(var1.y) && !Float.isNaN(var1.z)&& var50-- > 0) {
 					if(var6 == var3 && var7 == var4 && var8 == var5) {
 						return null;
 					}
