@@ -1,5 +1,5 @@
 # Classic 0.0.11a [![Build and Upload JS + WASM](https://github.com/radmanplays/classic-0.0.11a/actions/workflows/gradle.yml/badge.svg)](https://github.com/radmanplays/classic-0.0.11a/actions/workflows/gradle.yml)
-![Mariominecraft_awesome_0508](https://github.com/user-attachments/assets/602bfaad-ff1a-475a-8b32-8329e23ffbb1)
+![20131121122231!Classic_0 0 12a](https://github.com/user-attachments/assets/5714cc3c-9587-4508-867c-ded6f0df63a1)
 
 
 
