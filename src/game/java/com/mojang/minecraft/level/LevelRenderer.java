@@ -58,14 +58,6 @@ public final class LevelRenderer {
 				}
 			}
 		}
-
-		this.surroundLists = GL11.glGenLists(2);
-		GL11.glNewList(this.surroundLists, GL11.GL_COMPILE);
-		this.compileSurroundingGround();
-		GL11.glEndList();
-		GL11.glNewList(this.surroundLists + 1, GL11.GL_COMPILE);
-		this.compileSurroundingWater();
-		GL11.glEndList();
 	}
 
 	public final void render(Player var1, int var2) {
@@ -93,7 +85,7 @@ public final class LevelRenderer {
 		GL11.glDisable(GL11.GL_TEXTURE_2D);
 	}
 
-	private void compileSurroundingGround() {
+	public void compileSurroundingGround() {
 		GL11.glEnable(GL11.GL_TEXTURE_2D);
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.textureManager.loadTexture("/rock.png", GL11.GL_NEAREST));
 		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -150,7 +142,7 @@ public final class LevelRenderer {
 		GL11.glDisable(GL11.GL_TEXTURE_2D);
 	}
 
-	private void compileSurroundingWater() {
+	public void compileSurroundingWater() {
 		GL11.glEnable(GL11.GL_TEXTURE_2D);
 		GL11.glColor3f(1.0F, 1.0F, 1.0F);
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.textureManager.loadTexture("/water.png", GL11.GL_NEAREST));

@@ -565,10 +565,10 @@ public final class Minecraft implements Runnable {
 
 		this.particleEngine.render(this.thePlayer, var1, 1);
 		var22 = this.levelRenderer;
-		GL11.glCallList(var22.surroundLists);
+	    var22.compileSurroundingGround();
 		this.setupFog(0);
 		var22 = this.levelRenderer;
-		GL11.glCallList(var22.surroundLists + 1);
+	    var22.compileSurroundingWater();
 		GL11.glEnable(GL11.GL_BLEND);
 		GL11.glDepthMask(false);
 		this.levelRenderer.render(this.thePlayer, 2);
